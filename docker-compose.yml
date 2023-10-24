@@ -1,0 +1,28 @@
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    env_file: ./.env
+    ports:
+      - $MONGODB_PORT:$MONGODB_PORT
+    volumes:
+      - db:/data/db
+
+  server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    env_file: ./.env
+    environment:
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=$MONGODB_PORT
+      - MONGODB_DATABASE=$MONGODB_DATABASE
+    depends_on:
+      - mongodb
+    ports:
+      - $PORT:$DOCKER_PORT
+    volumes:
+      - .:/usr/src/app
+
+volumes:
+  db:
