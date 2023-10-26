@@ -1,18 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Types } from "mongoose";
+import { config } from "dotenv";
+config();
 import User from "../models/User/User";
 import { PayloadType } from "../types/types";
 import { login } from "../controllers";
 
-const TOKEN_SECRET: string = process.env.TOKEN_SECRET;
+const TOKEN_SECRET: string | undefined = process.env.TOKEN_SECRET;
 
 export const createAccessToken = (payload: PayloadType): string =>
-  jwt.sign(payload, TOKEN_SECRET, { expiresIn: "1d" });
+  jwt.sign(payload, TOKEN_SECRET!, { expiresIn: "1d" });
 
 export const verifyToken = (token: string) => {
   try {
-    return jwt.verify(token, TOKEN_SECRET);
+    return jwt.verify(token, TOKEN_SECRET!);
   } catch (error) {
     console.error(
       "Token verification proccess interrupted!"
@@ -34,9 +36,9 @@ export const authenticationByUser = async (req: Request, res: Response, next: Ne
     
         const decoded: string | JwtPayload = verifyToken(token);
         
-        const userResponse = await User.findById({ _id: decoded.id }).select('username');        
+        const userResponse = await User.findById({ _id: (decoded as JwtPayload).id }).select('username');        
         
-        if( (decoded as JwtPayload).id === userResponse.id ) {
+        if( (decoded as JwtPayload).id === userResponse!.id ) {
             console.log("User has been authenticated successfully");
             next();
         }else{

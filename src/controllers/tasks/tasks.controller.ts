@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 import Task from "../../models/Task/Task";
 import { verifyToken } from "../../middleware";
+import { JwtPayload } from "jsonwebtoken";
 
 export const getTasks = async (req: Request, res: Response) => {
   try {
     // extract user id from token
-    const userId: string = verifyToken(
-      req.headers["x-auth-token"] as string
-    ).id;
+    const userId: string = (verifyToken(req.headers["x-auth-token"] as string)as JwtPayload).id;
     const tasks = await Task.find({ user: userId });
     return res.status(200).json({ tasks });
   } catch (error) {
@@ -18,9 +17,7 @@ export const getTasks = async (req: Request, res: Response) => {
 export const getTask = async (req: Request, res: Response) => {
   // extract task id
   try {
-    const userId: string = verifyToken(
-      req.headers["x-auth-token"] as string
-    ).id;
+    const userId: string = (verifyToken(req.headers["x-auth-token"] as string)as JwtPayload).id;
     const [task] = await Task.find({ _id: req.params.id, user: userId });
 
     if (!task) {
@@ -41,7 +38,7 @@ export const createTasks = async (req: Request, res: Response) => {
     const newTask = new Task({
       title,
       description,
-      user: verifyToken(req.headers["x-auth-token"] as string).id,
+      user: (verifyToken(req.headers["x-auth-token"] as string)as JwtPayload).id,
     });
     // store in database
     await newTask.save();
@@ -54,9 +51,9 @@ export const createTasks = async (req: Request, res: Response) => {
 
 export const updateTasks = async (req: Request, res: Response) => {
   try {
-    const userId: string = verifyToken(
+    const userId: string = (verifyToken(
       req.headers["x-auth-token"] as string
-    ).id;
+    )as JwtPayload).id;
     const taskId: string = req.params.id;
 
     const { title, description } = req.body;
@@ -79,9 +76,9 @@ export const updateTasks = async (req: Request, res: Response) => {
 
 export const deleteTasks = async (req: Request, res: Response) => {
   try {
-    const userId: string = verifyToken(
+    const userId: string = (verifyToken(
       req.headers["x-auth-token"] as string
-    ).id;
+    )as JwtPayload).id;
     const taskId: string = req.params.id;
 
     const deletedTask = await Task.deleteOne({ _id: taskId, user: userId });
